@@ -1,11 +1,13 @@
 var Coinfloor = require('coinfloor');
 var users = require('./users.json');
 var utils = require('./coinfloorUtils.js');
-
+var checkBalance = require('./checkBalance.js');
 
 var userConnections = Object();
 
 console.log(users);
+
+var latestTicker = Object();
 
 var user = users[0]; //user details should be given as input to node process
 
@@ -14,32 +16,43 @@ userConnection = new Coinfloor(user.coinfloorID, user.password, user.api_key, on
 
 function onConnect(){
   console.log("Connected for user: " + user.coinfloorID);
-  userConnection.watchTicker(utils.getAssetCode("XBT"), utils.getAssetCode("GBP"), true, function(msg){console.log(msg)});
-  userConnection.getBalances(function(msg){
+  userConnection.watchTicker(utils.getAssetCode("XBT"), utils.getAssetCode("GBP"), true, function(msg){
+      console.log(msg);
+      //TODO: store ticker values in global variables
+      //latestTicker = msg.ticker;
+    });
+  userConnection.getBalances(function(balanceMsg){
       // console.log(msg)
-      checkBalances(msg.balances)
+      stopLossCheck(balanceMsg.balances)
     });
 };
 
-userConnection.addEventListener("TickerChanged", function(msg){
+userConnection.addEventListener("TickerChanged", function(tickerMsg){
+  //TODO: update global variables with ticker values
   userConnection.getBalances(function(msg){
       // console.log(msg)
-      checkBalances(msg.balances)
+      stopLossCheck(msg.balances)
     });
 });
 
-function checkBalances(balances){
+//TODO: add an event listener for balance changed event - perform same checks
+
+function stopLossCheck(balances){
   console.log(balances);
 
-  var GBPbalance = getScaledBalanceForAsset("GBP", balances);
-  var XBTbalance = getScaledBalanceForAsset("XBT", balances);
+  var GBPbalance = getScaledBalance("GBP", balances);
+  var XBTbalance = getScaledBalance("XBT", balances);
 
-  //call stop loss check function here
-  console.log("XBT: " + XBTbalance);
-  console.log("GBP: " + GBPbalance);
+  //call check balance function here
+  if(checkBalance.isAboveMaintenanceValue(XBTbalance, GBPbalance, ,user.trademoreID)){
+    console.log("Value check successful: value of account is above maintenance requirement");
+  } else {
+    //execute stop loss trade
+    stopLossTrade("XBT", "GBP", true);
+  }
 }
 
-function getScaledBalanceForAsset(assetString, balances){
+function getScaledBalance(assetString, balances){
   var balanceObj = balances.filter(function getValue(element){
                                       return element.asset === utils.getAssetCode(assetString);
                                     });
@@ -49,4 +62,13 @@ function getScaledBalanceForAsset(assetString, balances){
     console.log("Warning: no balance given for asset: " + assetString);
     return 0;
   }
+}
+
+function stopLossTrade(loanAsset, counterAsset, test){
+  if(!test){
+    //execute market order to convert total counter asset balance to loan asset
+  } else {
+    //execute simulated market order to do the same thing
+  }
+
 }
