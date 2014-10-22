@@ -17,21 +17,21 @@ function onConnect(){
       //TODO: store ticker values in global variables
       //latestTicker = msg.ticker;
     });
-  userConnection.getBalances(function(balanceMsg){
-      // console.log(msg)
-      stopLossCheck(balanceMsg.balances)
+
+  userConnection.getBalances(function(msg){
+      stopLossCheck(msg.balances)
     });
 };
 
 userConnection.addEventListener("TickerChanged", function(tickerMsg){
   //TODO: update global variables with ticker values
+
   userConnection.getBalances(function(msg){
-      // console.log(msg)
       stopLossCheck(msg.balances)
     });
 });
 
-//TODO: add an event listener for balance changed event - perform same checks
+//TODO: add an event listener for balance changed event - perform same stop loss checks
 
 function stopLossCheck(balances){
   console.log(balances);
@@ -40,7 +40,7 @@ function stopLossCheck(balances){
   var XBTbalance = getScaledBalance("XBT", balances);
 
   //call check balance function here
-  if(checkBalance.isAboveMaintenanceValue(XBTbalance, GBPbalance, ,user.trademoreID)){
+  if(checkBalance.isAboveMaintenanceValue(XBTbalance, GBPbalance, /*latestTicker*/ 240.0, user.trademoreID)){
     console.log("Value check successful: value of account is above maintenance requirement");
   } else {
     //execute stop loss trade
@@ -66,5 +66,4 @@ function stopLossTrade(loanAsset, counterAsset, test){
   } else {
     //execute simulated market order to do the same thing
   }
-
 }
