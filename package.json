@@ -6,6 +6,7 @@
   "dependencies": {
     "coinfloor": "",
     "mocha": "",
-    "chai": ""
+    "chai": "",
+    "mysql": ""
   }
 }
