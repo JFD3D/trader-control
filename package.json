@@ -1,0 +1,9 @@
+{
+  "name": "trader-control",
+  "private": true,
+  "version": "0.0.1",
+  "description": "automated stop loss logic",
+  "dependencies": {
+    "coinfloor": ""
+  }
+}
