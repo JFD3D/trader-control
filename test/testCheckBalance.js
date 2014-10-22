@@ -1,13 +1,13 @@
 var assert = require('chai').assert;
 var checkBalance = require('../lib/checkBalance.js');
-var mySQL = require('../lib/mySQLWrapper.js');
+var trader = require('../lib/trader.js');
 
 var valueDelta = 0.00000001; //acceptable error for numerical quantities (accurate to 1 satoshi)
 var testUID = 1000;
 
 describe('test check balance functions',function(){
 
-  //setup - add rows to mysql DB for borrower and some loans on Coinfloor and btcchina
+  //setup - create trader and and some loans on Coinfloor and btcchina
 
   it('test getAccountPresentValue()',function(){
 
@@ -68,6 +68,6 @@ describe('test check balance functions',function(){
     assert.isFalse(actual, 'present value is no above maintenance value');
   });
 
-  //teardown - delete mysql rows created in setup
+  //teardown - delete trader created in setup
 
 });
