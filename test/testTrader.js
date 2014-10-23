@@ -7,7 +7,7 @@ var user = users[0];
 //setup - create test trader
 var trader = new Trader("test_user", user.coinfloorID, user.password, user.api_key, function(result){
   console.log(result);
-  console.log(trader.UID);
+  console.log("external access:" + trader.UID);
 });
 
 // describe('test check balance functions',function(){
