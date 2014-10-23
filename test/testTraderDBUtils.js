@@ -55,3 +55,64 @@ describe('test get coinfloor credentials', function(){
   });
 
 });
+
+describe('test get maintenance margin', function(){
+  var testUserID;
+
+  before(function(done){
+    TraderUtils.createTraderInDB("test_user", testCoinfloorID, testCoinfloorPassword, testCoinfloorAPIKey, function(result){
+      testUserID = result;
+      done();
+    });
+  });
+
+  describe('test default maintenance margin', function(){
+    var expected = 0.2;
+    var actual;
+    before(function(done){
+      TraderUtils.getMaintenanceReq(testUserID, function(result){
+        actual = result;
+        TraderUtils.deleteTraderFromDB(testUserID, function(){});
+        done();
+      });
+    });
+
+    it('check default maintenance margin', function(){
+      assert.equal(actual, expected, "maintenance margin correct");
+    });
+
+  });
+
+});
+
+describe('test get maintenance margin', function(){
+  var testUserID;
+  var expected = 0.3;
+
+  before(function(done){
+    TraderUtils.createTraderInDB("test_user", testCoinfloorID, testCoinfloorPassword, testCoinfloorAPIKey, function(result){
+      testUserID = result;
+      TraderUtils.setMaintenanceReq(testUserID, expected, function(result){
+        done();
+      });
+    });
+  });
+
+  describe('test default maintenance margin', function(){
+    var actual;
+    before(function(done){
+      TraderUtils.getMaintenanceReq(testUserID, function(result){
+        actual = result;
+        var user = testUserID;
+        TraderUtils.deleteTraderFromDB(user, function(){});
+        done();
+      });
+    });
+
+    it('check default maintenance margin', function(){
+      assert.equal(actual, expected, "maintenance margin correct");
+    });
+
+  });
+
+});
