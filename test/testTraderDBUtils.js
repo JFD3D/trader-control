@@ -125,9 +125,9 @@ describe('test loan functions', function(){
     TraderUtils.createTraderInDB("test_user", testCoinfloorID, testCoinfloorPassword, testCoinfloorAPIKey, function(result){
         testUserID = result;
         async.parallel([
-            TraderUtils.addLoanForTrader(testUserID, 0.1, "coinfloor", new Date().getTime(), function(){;}),
-            TraderUtils.addLoanForTrader(testUserID, 0.2, "coinfloor", new Date().getTime(), function(){;});
-            TraderUtils.addLoanForTrader(testUserID, 0.4, "BTCChina", new Date().getTime(), function(){;});
+            TraderUtils.addLoanForTrader(testUserID, 0.1, "coinfloor", "2014-10-22 16:30:38", function(){;}),
+            TraderUtils.addLoanForTrader(testUserID, 0.23, "coinfloor", "2014-10-22 16:30:38", function(){;}),
+            TraderUtils.addLoanForTrader(testUserID, 0.4, "BTCChina", "2014-10-22 16:30:38", function(){;})
           ], done());
     });
   });
@@ -135,35 +135,88 @@ describe('test loan functions', function(){
   describe('test get all loans', function(){
     var actual;
     before(function(done){
-      TraderUtils.getAllLoans()
+      TraderUtils.getAllLoans(testUserID, function(result){
+        actual = result;
+        async.parallel([
+          TraderUtils.deleteAllLoans(testUserID, function(){;}),
+          TraderUtils.deleteTraderFromDB(testUserID, function(){;})
+        ], done());
+      });
     });
 
-    it('check default maintenance margin', function(){
-      assert.equal(actual, expected, "maintenance margin correct");
+    it('check result is an array', function(){
+      assert.isArray(actual, "result is an array");
+      assert.lengthOf(actual, 3, "array is expected length");
     });
 
+  });
+
+});
+
+describe('test loan functions', function(){
+  var testUserID;
+
+  before(function(done){
+    TraderUtils.createTraderInDB("test_user", testCoinfloorID, testCoinfloorPassword, testCoinfloorAPIKey, function(result){
+        testUserID = result;
+        async.parallel([
+            TraderUtils.addLoanForTrader(testUserID, 0.1, "coinfloor", "2014-10-22 16:30:38", function(){;}),
+            TraderUtils.addLoanForTrader(testUserID, 0.23, "coinfloor", "2014-10-22 16:30:38", function(){;}),
+            TraderUtils.addLoanForTrader(testUserID, 0.4, "BTCChina", "2014-10-22 16:30:38", function(){;})
+          ], done());
+    });
   });
 
   describe('test get all loans for exchange', function(){
     var actual;
     before(function(done){
-      TraderUtils.getLoansForExchange()
+      TraderUtils.getLoansForExchange(testUserID, "coinfloor", function(result){
+        actual = result;
+        async.parallel([
+          TraderUtils.deleteAllLoans(testUserID, function(){;}),
+          TraderUtils.deleteTraderFromDB(testUserID, function(){;})
+        ], done());
+      });
     });
 
-    it('check default maintenance margin', function(){
-      assert.equal(actual, expected, "maintenance margin correct");
+    it('check result is an array', function(){
+      assert.isArray(actual, "result is an array");
+      assert.lengthOf(actual, 2, "array is expected length");
     });
 
   });
 
-  describe('test get all loans for exchange', function(){
+});
+
+describe('test loan functions', function(){
+  var testUserID;
+
+  before(function(done){
+    TraderUtils.createTraderInDB("test_user", testCoinfloorID, testCoinfloorPassword, testCoinfloorAPIKey, function(result){
+        testUserID = result;
+        async.parallel([
+            TraderUtils.addLoanForTrader(testUserID, 0.1, "coinfloor", "2014-10-22 16:30:38", function(){;}),
+            TraderUtils.addLoanForTrader(testUserID, 0.23, "coinfloor", "2014-10-22 16:30:38", function(){;}),
+            TraderUtils.addLoanForTrader(testUserID, 0.4, "BTCChina", "2014-10-22 16:30:38", function(){;})
+          ], done());
+    });
+  });
+
+  describe('test total value of loans for exchange', function(){
     var actual;
+    var expected = 0.33;
     before(function(done){
-      TraderUtils.getTotalValueOfLoansForExchange()
+      TraderUtils.getTotalValueOfLoansForExchange(testUserID, "coinfloor", function(result){
+        actual = result;
+        async.parallel([
+          TraderUtils.deleteAllLoans(testUserID, function(){;}),
+          TraderUtils.deleteTraderFromDB(testUserID, function(){;})
+        ], done());
+      });
     });
 
-    it('check default maintenance margin', function(){
-      assert.equal(actual, expected, "maintenance margin correct");
+    it('check result is an array', function(){
+      assert.equal(actual, expected, "total result is same as expected value");
     });
 
   });
