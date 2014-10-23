@@ -1,4 +1,5 @@
 var assert = require('chai').assert;
+var async = require('async');
 var TraderUtils = require('../lib/traderDBUtils.js');
 
 var testCoinfloorID = 1000;
@@ -91,8 +92,8 @@ describe('test get maintenance margin', function(){
 
   before(function(done){
     TraderUtils.createTraderInDB("test_user", testCoinfloorID, testCoinfloorPassword, testCoinfloorAPIKey, function(result){
-      testUserID = result;
-      TraderUtils.setMaintenanceReq(testUserID, expected, function(result){
+        testUserID = result;
+        TraderUtils.setMaintenanceReq(testUserID, expected, function(result){
         done();
       });
     });
@@ -107,6 +108,58 @@ describe('test get maintenance margin', function(){
         TraderUtils.deleteTraderFromDB(user, function(){});
         done();
       });
+    });
+
+    it('check default maintenance margin', function(){
+      assert.equal(actual, expected, "maintenance margin correct");
+    });
+
+  });
+
+});
+
+describe('test loan functions', function(){
+  var testUserID;
+
+  before(function(done){
+    TraderUtils.createTraderInDB("test_user", testCoinfloorID, testCoinfloorPassword, testCoinfloorAPIKey, function(result){
+        testUserID = result;
+        async.parallel([
+            TraderUtils.addLoanForTrader(testUserID, 0.1, "coinfloor", new Date().getTime(), function(){;}),
+            TraderUtils.addLoanForTrader(testUserID, 0.2, "coinfloor", new Date().getTime(), function(){;});
+            TraderUtils.addLoanForTrader(testUserID, 0.4, "BTCChina", new Date().getTime(), function(){;});
+          ], done());
+    });
+  });
+
+  describe('test get all loans', function(){
+    var actual;
+    before(function(done){
+      TraderUtils.getAllLoans()
+    });
+
+    it('check default maintenance margin', function(){
+      assert.equal(actual, expected, "maintenance margin correct");
+    });
+
+  });
+
+  describe('test get all loans for exchange', function(){
+    var actual;
+    before(function(done){
+      TraderUtils.getLoansForExchange()
+    });
+
+    it('check default maintenance margin', function(){
+      assert.equal(actual, expected, "maintenance margin correct");
+    });
+
+  });
+
+  describe('test get all loans for exchange', function(){
+    var actual;
+    before(function(done){
+      TraderUtils.getTotalValueOfLoansForExchange()
     });
 
     it('check default maintenance margin', function(){
