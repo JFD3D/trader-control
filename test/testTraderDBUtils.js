@@ -86,7 +86,7 @@ describe('test get maintenance margin', function(){
 
 });
 
-describe('test get maintenance margin', function(){
+describe('test set maintenance margin', function(){
   var testUserID;
   var expected = 0.3;
 
@@ -118,7 +118,7 @@ describe('test get maintenance margin', function(){
 
 });
 
-describe('test loan functions', function(){
+describe('test get all loans for user', function(){
   var testUserID;
 
   before(function(done){
@@ -153,7 +153,7 @@ describe('test loan functions', function(){
 
 });
 
-describe('test loan functions', function(){
+describe('test get all loans for an exchange for user', function(){
   var testUserID;
 
   before(function(done){
@@ -188,7 +188,7 @@ describe('test loan functions', function(){
 
 });
 
-describe('test loan functions', function(){
+describe('test get total value of all loans', function(){
   var testUserID;
 
   before(function(done){

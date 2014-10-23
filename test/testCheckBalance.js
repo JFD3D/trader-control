@@ -32,14 +32,6 @@ describe('test check balance functions',function(){
     assert.closeTo(actual, expected, valueDelta, 'minimum present value calculated is not equal to expected');
   });
 
-  it('test getMaintenanceReq()',function(){
-    var expected = 0.2;
-
-    var actual = checkBalance.getMaintenanceReq(testUID);
-
-    assert.closeTo(actual, expected, valueDelta, 'minimum present value calculated is not equal to expected');
-  });
-
   it('test getOutstandingLoanBalance()',function(){
     var expected = 2.1;
 
