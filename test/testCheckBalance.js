@@ -1,6 +1,6 @@
 var assert = require('chai').assert;
 var checkBalance = require('../lib/checkBalance.js');
-var trader = require('../lib/trader.js');
+var traderUtils = require('../lib/traderDBUtils.js');
 
 var valueDelta = 0.00000001; //acceptable error for numerical quantities (accurate to 1 satoshi)
 var testUID = 1000;
