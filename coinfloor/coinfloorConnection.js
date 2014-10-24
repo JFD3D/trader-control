@@ -17,7 +17,7 @@ TraderUtils.getCoinfloorCredentials(trademoreID, function(credentials){
   console.log('credentials');
   function onConnect(){
     userConnection.watchTicker(utils.getAssetCode("XBT"), utils.getAssetCode("GBP"), true, function(ticker){
-        latestAskPrice = getScaledAskPrice(ticker, "XBT:GBP");
+        updateAskPrice(getScaledAskPrice(ticker, "XBT:GBP"));
       });
 
     userConnection.getBalances(function(msg){
@@ -25,8 +25,8 @@ TraderUtils.getCoinfloorCredentials(trademoreID, function(credentials){
       });
   };
 
-  userConnection.addEventListener("TickerChanged", function(tickerMsg){
-    latestAskPrice = getScaledAskPrice(tickerMsg, "XBT:GBP");
+  userConnection.addEventListener("TickerChanged", function(ticker){
+    updateAskPrice(getScaledAskPrice(ticker, "XBT:GBP"));
 
     userConnection.getBalances(function(msg){
         stopLossCheck(msg.balances)
@@ -41,29 +41,34 @@ TraderUtils.getCoinfloorCredentials(trademoreID, function(credentials){
 
   function stopLossCheck(balances){
     console.log(balances);
-
     var GBPbalance = getScaledBalance("GBP", balances);
     var XBTbalance = getScaledBalance("XBT", balances);
 
+    console.log('GBP balance = ' + GBPbalance);
+    console.log('XBT balance = ' + XBTbalance);
+    console.log('ask price = ' + latestAskPrice);
     checkBalance.isAboveMaintenanceValue(XBTbalance, GBPbalance, latestAskPrice, trademoreID, "coinfloor", function(result){
       if(result){
         console.log("Value check passed: value of account is above minimum requirement");
       } else {
         console.log("Value check failed: value of account is below minimum requirement");
-        executeStopLossTrade("XBT", "GBP");
+        executeStopLossTrade("XBT", "GBP", GBPbalance);
       }
     });
 
   }
 
-  function executeStopLossTrade(loanAsset, counterAsset){
-    console.log('testMode:' + testMode);
+  function executeStopLossTrade(loanAsset, counterAsset, counterQuantity){
     if(testMode == 0){
       //execute market order to convert total counter asset balance to loan asset
       console.log("Executing Real Stop Loss Trade!");
     } else {
       //execute simulated market order to do the same thing
-      console.log("Executing Simulated Stop Loss Trade!");
+      console.log("Simulating Stop Loss Trade!");
+      // userConnection.estimateCounterMarketOrder(utils.getAssetCode(loanAsset), utils.getAssetCode(counterAsset), counterQuantity, function(result){
+      //   console.log(result);
+      // });
+
     }
   }
 
@@ -82,6 +87,12 @@ TraderUtils.getCoinfloorCredentials(trademoreID, function(credentials){
   function getScaledAskPrice(ticker, assetPair){
     var ask = ticker.ask;
     return utils.scaleOutputPrice(assetPair, ask);
+  }
+
+  function updateAskPrice(newAskPrice){
+    if(newAskPrice > 0){
+      latestAskPrice = newAskPrice;
+    }
   }
 
 });
