@@ -1,81 +1,87 @@
 var Coinfloor = require('coinfloor');
-var users = require('../credentials/users.json');
 var utils = require('./coinfloorUtils.js');
 var checkBalance = require('../lib/checkBalance.js');
+var TraderUtils = require('../lib/traderDBUtils.js');
 
-//TODO: user details should be given as input to this process
-var user = users[0];
+var trademoreID = process.argv[2];
 
-var latestAskPrice = 0;
+var testMode = process.argv[3];
 
-console.log("Setting up connection for user:" + user.coinfloorID);
-userConnection = new Coinfloor(user.coinfloorID, user.password, user.api_key, onConnect);
+console.log('testmode: ' + testMode);
 
-function onConnect(){
-  console.log("Connected for user: " + user.coinfloorID);
-  userConnection.watchTicker(utils.getAssetCode("XBT"), utils.getAssetCode("GBP"), true, function(ticker){
-      latestAskPrice = getScaledAskPrice(ticker, "XBT:GBP");
-    });
+var latestAskPrice;
 
-  userConnection.getBalances(function(msg){
-      stopLossCheck(msg.balances)
-    });
-};
+console.log("Setting up connection for user:" + trademoreID);
+TraderUtils.getCoinfloorCredentials(trademoreID, function(credentials){
+  userConnection = new Coinfloor(credentials.coinfloorID, credentials.coinfloorPassword, credentials.coinfloorAPIKey, onConnect);
+  console.log('credentials');
+  function onConnect(){
+    userConnection.watchTicker(utils.getAssetCode("XBT"), utils.getAssetCode("GBP"), true, function(ticker){
+        latestAskPrice = getScaledAskPrice(ticker, "XBT:GBP");
+      });
 
-userConnection.addEventListener("TickerChanged", function(tickerMsg){
-  latestAskPrice = getScaledAskPrice(tickerMsg, "XBT:GBP");
+    userConnection.getBalances(function(msg){
+        stopLossCheck(msg.balances)
+      });
+  };
 
-  userConnection.getBalances(function(msg){
-      stopLossCheck(msg.balances)
-    });
-});
+  userConnection.addEventListener("TickerChanged", function(tickerMsg){
+    latestAskPrice = getScaledAskPrice(tickerMsg, "XBT:GBP");
 
-userConnection.addEventListener("BalanceChanged", function(tickerMsg){
-  //TODO: update global variables with ticker values
-
-  userConnection.getBalances(function(msg){
-      stopLossCheck(msg.balances)
-    });
-});
-
-function stopLossCheck(balances){
-  console.log(balances);
-
-  var GBPbalance = getScaledBalance("GBP", balances);
-  var XBTbalance = getScaledBalance("XBT", balances);
-
-  checkBalance.isAboveMaintenanceValue(XBTbalance, GBPbalance, 240.0, user.trademoreID, function(aboveMin){
-    if(aboveMin){
-      console.log("Value check successful: value of account is above maintenance requirement");
-    } else {
-      //execute stop loss trade
-      stopLossTrade("XBT", "GBP", true);
-    }
+    userConnection.getBalances(function(msg){
+        stopLossCheck(msg.balances)
+      });
   });
 
-}
+  userConnection.addEventListener("BalanceChanged", function(tickerMsg){
+    userConnection.getBalances(function(msg){
+        stopLossCheck(msg.balances)
+      });
+  });
 
-function getScaledBalance(assetString, balances){
-  var balanceObj = balances.filter(function getValue(element){
-                                      return element.asset === utils.getAssetCode(assetString);
-                                    });
-  if(balanceObj[0] !== undefined){
-    return utils.scaleOutputQuantity(assetString, balanceObj[0].balance);
-  } else {
-    console.log("Warning: no balance given for asset: " + assetString);
-    return 0;
+  function stopLossCheck(balances){
+    console.log(balances);
+
+    var GBPbalance = getScaledBalance("GBP", balances);
+    var XBTbalance = getScaledBalance("XBT", balances);
+
+    checkBalance.isAboveMaintenanceValue(XBTbalance, GBPbalance, latestAskPrice, trademoreID, "coinfloor", function(result){
+      if(result){
+        console.log("Value check passed: value of account is above minimum requirement");
+      } else {
+        console.log("Value check failed: value of account is below minimum requirement");
+        executeStopLossTrade("XBT", "GBP");
+      }
+    });
+
   }
-}
 
-function getScaledAskPrice(ticker, assetPair){
-  var ask = ticker.ask;
-  return utils.scaleOutputPrice(assetPair, ask);
-}
-
-function stopLossTrade(loanAsset, counterAsset, test){
-  if(!test){
-    //execute market order to convert total counter asset balance to loan asset
-  } else {
-    //execute simulated market order to do the same thing
+  function executeStopLossTrade(loanAsset, counterAsset){
+    console.log('testMode:' + testMode);
+    if(testMode == 0){
+      //execute market order to convert total counter asset balance to loan asset
+      console.log("Executing Real Stop Loss Trade!");
+    } else {
+      //execute simulated market order to do the same thing
+      console.log("Executing Simulated Stop Loss Trade!");
+    }
   }
-}
+
+  function getScaledBalance(assetString, balances){
+    var balanceObj = balances.filter(function getValue(element){
+                                        return element.asset === utils.getAssetCode(assetString);
+                                      });
+    if(balanceObj[0] !== undefined){
+      return utils.scaleOutputQuantity(assetString, balanceObj[0].balance);
+    } else {
+      console.log("Warning: no balance given for asset: " + assetString);
+      return 0;
+    }
+  }
+
+  function getScaledAskPrice(ticker, assetPair){
+    var ask = ticker.ask;
+    return utils.scaleOutputPrice(assetPair, ask);
+  }
+
+});
