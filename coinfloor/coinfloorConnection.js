@@ -58,17 +58,19 @@ TraderUtils.getCoinfloorCredentials(trademoreID, function(credentials){
 
   }
 
-  function executeStopLossTrade(loanAsset, counterAsset, counterQuantity){
+  function executeStopLossTrade(loanAsset, counterAsset, counterTotal){
+    var assetPair = loanAsset + ':' + counterAsset;
+
     if(testMode == 0){
       //execute market order to convert total counter asset balance to loan asset
       console.log("Executing Real Stop Loss Trade!");
     } else {
-      //execute simulated market order to do the same thing
-      console.log("Simulating Stop Loss Trade!");
-      // userConnection.estimateCounterMarketOrder(utils.getAssetCode(loanAsset), utils.getAssetCode(counterAsset), counterQuantity, function(result){
-      //   console.log(result);
-      // });
-
+      //execute simulated market order 
+      userConnection.estimateCounterMarketOrder(utils.getAssetCode(loanAsset), utils.getAssetCode(counterAsset), utils.scaleInputPrice(assetPair, counterTotal), function(result){
+        var counterAmount = utils.scaleOutputQuantity(counterAsset, result.total);
+        var baseAmount = utils.scaleOutputQuantity(loanAsset, result.quantity);
+        console.log('Estimated stop loss trade: would have sold ' + counterAmount + counterAsset + ' for ' + baseAmount + loanAsset);
+      });
     }
   }
 
