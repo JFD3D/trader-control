@@ -137,7 +137,7 @@ describe('test get all loans for user', function(){
     before(function(done){
       TraderUtils.getAllLoans(testUserID, function(result){
         actual = result;
-        async.parallel([
+        async.series([
           TraderUtils.deleteAllLoans(testUserID, function(){;}),
           TraderUtils.deleteTraderFromDB(testUserID, function(){;})
         ], done());
@@ -172,7 +172,7 @@ describe('test get all loans for an exchange for user', function(){
     before(function(done){
       TraderUtils.getLoansForExchange(testUserID, "coinfloor", function(result){
         actual = result;
-        async.parallel([
+        async.series([
           TraderUtils.deleteAllLoans(testUserID, function(){;}),
           TraderUtils.deleteTraderFromDB(testUserID, function(){;})
         ], done());
@@ -208,7 +208,7 @@ describe('test get total value of all loans', function(){
     before(function(done){
       TraderUtils.getTotalValueOfLoansForExchange(testUserID, "coinfloor", function(result){
         actual = result;
-        async.parallel([
+        async.series([
           TraderUtils.deleteAllLoans(testUserID, function(){;}),
           TraderUtils.deleteTraderFromDB(testUserID, function(){;})
         ], done());

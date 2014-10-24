@@ -4,7 +4,6 @@ var checkBalance = require('../lib/checkBalance.js');
 var TraderUtils = require('../lib/traderDBUtils.js');
 
 var valueDelta = 0.00000001; //acceptable error for numerical quantities (accurate to 1 satoshi)
-var testUserID;
 
 describe('test check balance non async functions',function(){
 
@@ -33,7 +32,8 @@ describe('test check balance non async functions',function(){
 
 });
 
-describe('test check balance async', function(){
+describe('test check balance more', function(){
+  var testUserID;
 
   before(function(done){
     TraderUtils.createTraderInDB("test_user", '1000', 'password', 'apikeytest123', function(result){
@@ -45,14 +45,6 @@ describe('test check balance async', function(){
           TraderUtils.addLoanForTrader(testUserID, 0.4, "BTCChina", "2014-10-22 16:30:38", function(){;})
         ], done());
     });
-  });
-
-  after(function(){
-    // call delete functions
-    async.series([
-      TraderUtils.deleteAllLoans(testUserID, function(){;}),
-      TraderUtils.deleteTraderFromDB(testUserID, function(){;})
-    ], function(result){console.log(result);});
   });
 
   describe('greater than minimum value',function(){
@@ -68,8 +60,10 @@ describe('test check balance async', function(){
     before(function(done){
       checkBalance.isAboveMaintenanceValue(XBTBalance, GBPBalance, XBTAskPrice, testUserID, "coinfloor", function(result){
         actual = result;
-        console.log(result);
-        done();
+        async.series([
+          TraderUtils.deleteAllLoans(testUserID, function(){;}),
+          TraderUtils.deleteTraderFromDB(testUserID, function(){;})
+        ], done());
       });
     })
 
@@ -78,12 +72,29 @@ describe('test check balance async', function(){
     });
   });
 
+});
+
+describe('test check balance less', function(){
+  var testUserID;
+
+  before(function(done){
+    TraderUtils.createTraderInDB("test_user", '1000', 'password', 'apikeytest123', function(result){
+      testUserID = result;
+      //create some test loans for test user
+      async.parallel([
+          TraderUtils.addLoanForTrader(testUserID, 0.1, "coinfloor", "2014-10-22 16:30:38", function(){;}),
+          TraderUtils.addLoanForTrader(testUserID, 0.23, "coinfloor", "2014-10-22 16:30:38", function(){;}),
+          TraderUtils.addLoanForTrader(testUserID, 0.4, "BTCChina", "2014-10-22 16:30:38", function(){;})
+        ], done());
+    });
+  });
+
   describe('lower than minimum value',function(){
     //total loans on coinfloor = 0.33XBT
     //therefore minimum value = 0.33*(1+0.2) = 0.396 (because of maintenance req)
     var XBTBalance = 0.25;
     var XBTAskPrice = 240.0;
-    var GBPBalance = 0.14*XBTAskPrice;  //should equal 0.14 XBT, so total = 0.39 XBT (< total)
+    var GBPBalance = 0.12*XBTAskPrice;  //should equal 0.13 XBT, so total = 0.39 XBT (< total)
 
     var expected = true;
     var actual = false
@@ -91,13 +102,32 @@ describe('test check balance async', function(){
     before(function(done){
       checkBalance.isAboveMaintenanceValue(XBTBalance, GBPBalance, XBTAskPrice, testUserID, "coinfloor", function(result){
         actual = result;
-        console.log(result);
-        done();
+        async.series([
+          TraderUtils.deleteAllLoans(testUserID, function(){;}),
+          TraderUtils.deleteTraderFromDB(testUserID, function(){;})
+        ], done());
       });
     })
 
     it('should return false', function(){
       assert.isFalse(actual, 'present value is below maintenance value');
+    });
+  });
+
+});
+
+describe('test check balance equal', function(){
+  var testUserID;
+
+  before(function(done){
+    TraderUtils.createTraderInDB("test_user", '1000', 'password', 'apikeytest123', function(result){
+      testUserID = result;
+      //create some test loans for test user
+      async.parallel([
+          TraderUtils.addLoanForTrader(testUserID, 0.1, "coinfloor", "2014-10-22 16:30:38", function(){;}),
+          TraderUtils.addLoanForTrader(testUserID, 0.23, "coinfloor", "2014-10-22 16:30:38", function(){;}),
+          TraderUtils.addLoanForTrader(testUserID, 0.4, "BTCChina", "2014-10-22 16:30:38", function(){;})
+        ], done());
     });
   });
 
@@ -114,8 +144,10 @@ describe('test check balance async', function(){
     before(function(done){
       checkBalance.isAboveMaintenanceValue(XBTBalance, GBPBalance, XBTAskPrice, testUserID, "coinfloor", function(result){
         actual = result;
-        console.log(result);
-        done();
+        async.series([
+          TraderUtils.deleteAllLoans(testUserID, function(){;}),
+          TraderUtils.deleteTraderFromDB(testUserID, function(){;})
+        ], done());
       });
     })
 
