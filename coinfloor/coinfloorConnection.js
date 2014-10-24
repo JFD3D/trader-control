@@ -63,9 +63,14 @@ TraderUtils.getCoinfloorCredentials(trademoreID, function(credentials){
 
     if(testMode == 0){
       //execute market order to convert total counter asset balance to loan asset
-      console.log("Executing Real Stop Loss Trade!");
+      console.log("EXECUTING REAL STOP LOSS TRADE");
+      userConnection.executeCounterMarketOrder(utils.getAssetCode(loanAsset), utils.getAssetCode(counterAsset), utils.scaleInputPrice(assetPair, counterTotal), function(result){
+        var counterAmount = utils.scaleOutputQuantity(counterAsset, result.total);
+        var baseAmount = utils.scaleOutputQuantity(loanAsset, result.quantity);
+        console.log('STOP LOSS TRADE EXECUTED: sold ' + counterAmount + counterAsset + ' for ' + baseAmount + loanAsset);
+      });
     } else {
-      //execute simulated market order 
+      //execute simulated market order
       userConnection.estimateCounterMarketOrder(utils.getAssetCode(loanAsset), utils.getAssetCode(counterAsset), utils.scaleInputPrice(assetPair, counterTotal), function(result){
         var counterAmount = utils.scaleOutputQuantity(counterAsset, result.total);
         var baseAmount = utils.scaleOutputQuantity(loanAsset, result.quantity);
