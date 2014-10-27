@@ -60,10 +60,7 @@ describe('test check balance more', function(){
     before(function(done){
       checkBalance.isAboveMaintenanceValue(XBTBalance, GBPBalance, XBTAskPrice, testUserID, "coinfloor", function(result){
         actual = result;
-        async.series([
-          TraderUtils.deleteAllLoans(testUserID, function(){;}),
-          TraderUtils.deleteTraderFromDB(testUserID, function(){;})
-        ], done());
+        clearTraderFromDB(testUserID, done);
       });
     })
 
@@ -94,7 +91,7 @@ describe('test check balance less', function(){
     //therefore minimum value = 0.33*(1+0.2) = 0.396 (because of maintenance req)
     var XBTBalance = 0.25;
     var XBTAskPrice = 240.0;
-    var GBPBalance = 0.12*XBTAskPrice;  //should equal 0.13 XBT, so total = 0.39 XBT (< total)
+    var GBPBalance = 0.12*XBTAskPrice;  //should equal 0.12 XBT, so total = 0.37 XBT (< total)
 
     var expected = true;
     var actual = false
@@ -102,10 +99,7 @@ describe('test check balance less', function(){
     before(function(done){
       checkBalance.isAboveMaintenanceValue(XBTBalance, GBPBalance, XBTAskPrice, testUserID, "coinfloor", function(result){
         actual = result;
-        async.series([
-          TraderUtils.deleteAllLoans(testUserID, function(){;}),
-          TraderUtils.deleteTraderFromDB(testUserID, function(){;})
-        ], done());
+        clearTraderFromDB(testUserID, done);
       });
     })
 
@@ -144,10 +138,7 @@ describe('test check balance equal', function(){
     before(function(done){
       checkBalance.isAboveMaintenanceValue(XBTBalance, GBPBalance, XBTAskPrice, testUserID, "coinfloor", function(result){
         actual = result;
-        async.series([
-          TraderUtils.deleteAllLoans(testUserID, function(){;}),
-          TraderUtils.deleteTraderFromDB(testUserID, function(){;})
-        ], done());
+        clearTraderFromDB(testUserID, done);
       });
     })
 
@@ -157,3 +148,12 @@ describe('test check balance equal', function(){
   });
 
 });
+
+//delete test trader and all loans
+function clearTraderFromDB(traderID, callback){
+  TraderUtils.deleteAllLoans(traderID, function(){
+    TraderUtils.deleteTraderFromDB(traderID, function(){
+      callback();
+    });
+  });
+}
