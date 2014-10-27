@@ -1,6 +1,7 @@
 var assert = require('chai').assert;
 var async = require('async');
 var TraderUtils = require('../lib/traderDBUtils.js');
+var testUtils = require('./testUtils.js');
 
 var testCoinfloorID = 1000;
 var testCoinfloorPassword = "password";
@@ -124,11 +125,7 @@ describe('test get all loans for user', function(){
   before(function(done){
     TraderUtils.createTraderInDB("test_user", testCoinfloorID, testCoinfloorPassword, testCoinfloorAPIKey, function(result){
         testUserID = result;
-        async.parallel([
-            TraderUtils.addLoanForTrader(testUserID, 0.1, "coinfloor", "2014-10-22 16:30:38", function(){;}),
-            TraderUtils.addLoanForTrader(testUserID, 0.23, "coinfloor", "2014-10-22 16:30:38", function(){;}),
-            TraderUtils.addLoanForTrader(testUserID, 0.4, "BTCChina", "2014-10-22 16:30:38", function(){;})
-          ], done());
+        testUtils.createTestLoans(testUserID, done);
     });
   });
 
@@ -137,10 +134,7 @@ describe('test get all loans for user', function(){
     before(function(done){
       TraderUtils.getAllLoans(testUserID, function(result){
         actual = result;
-        async.series([
-          TraderUtils.deleteAllLoans(testUserID, function(){;}),
-          TraderUtils.deleteTraderFromDB(testUserID, function(){;})
-        ], done());
+        testUtils.clearTraderFromDB(testUserID, done);
       });
     });
 
@@ -159,11 +153,7 @@ describe('test get all loans for an exchange for user', function(){
   before(function(done){
     TraderUtils.createTraderInDB("test_user", testCoinfloorID, testCoinfloorPassword, testCoinfloorAPIKey, function(result){
         testUserID = result;
-        async.parallel([
-            TraderUtils.addLoanForTrader(testUserID, 0.1, "coinfloor", "2014-10-22 16:30:38", function(){;}),
-            TraderUtils.addLoanForTrader(testUserID, 0.23, "coinfloor", "2014-10-22 16:30:38", function(){;}),
-            TraderUtils.addLoanForTrader(testUserID, 0.4, "BTCChina", "2014-10-22 16:30:38", function(){;})
-          ], done());
+        testUtils.createTestLoans(testUserID, done);
     });
   });
 
@@ -172,10 +162,7 @@ describe('test get all loans for an exchange for user', function(){
     before(function(done){
       TraderUtils.getLoansForExchange(testUserID, "coinfloor", function(result){
         actual = result;
-        async.series([
-          TraderUtils.deleteAllLoans(testUserID, function(){;}),
-          TraderUtils.deleteTraderFromDB(testUserID, function(){;})
-        ], done());
+        testUtils.clearTraderFromDB(testUserID, done);
       });
     });
 
@@ -194,11 +181,7 @@ describe('test get total value of all loans', function(){
   before(function(done){
     TraderUtils.createTraderInDB("test_user", testCoinfloorID, testCoinfloorPassword, testCoinfloorAPIKey, function(result){
         testUserID = result;
-        async.parallel([
-            TraderUtils.addLoanForTrader(testUserID, 0.1, "coinfloor", "2014-10-22 16:30:38", function(){;}),
-            TraderUtils.addLoanForTrader(testUserID, 0.23, "coinfloor", "2014-10-22 16:30:38", function(){;}),
-            TraderUtils.addLoanForTrader(testUserID, 0.4, "BTCChina", "2014-10-22 16:30:38", function(){;})
-          ], done());
+        testUtils.createTestLoans(testUserID, done);
     });
   });
 
@@ -208,10 +191,7 @@ describe('test get total value of all loans', function(){
     before(function(done){
       TraderUtils.getTotalValueOfLoansForExchange(testUserID, "coinfloor", function(result){
         actual = result;
-        async.series([
-          TraderUtils.deleteAllLoans(testUserID, function(){;}),
-          TraderUtils.deleteTraderFromDB(testUserID, function(){;})
-        ], done());
+        testUtils.clearTraderFromDB(testUserID, done);
       });
     });
 
