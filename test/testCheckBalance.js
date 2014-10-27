@@ -38,12 +38,7 @@ describe('test check balance more', function(){
   before(function(done){
     TraderUtils.createTraderInDB("test_user", '1000', 'password', 'apikeytest123', function(result){
       testUserID = result;
-      //create some test loans for test user
-      async.parallel([
-          TraderUtils.addLoanForTrader(testUserID, 0.1, "coinfloor", "2014-10-22 16:30:38", function(){;}),
-          TraderUtils.addLoanForTrader(testUserID, 0.23, "coinfloor", "2014-10-22 16:30:38", function(){;}),
-          TraderUtils.addLoanForTrader(testUserID, 0.4, "BTCChina", "2014-10-22 16:30:38", function(){;})
-        ], done());
+      createTestLoans(testUserID, done);
     });
   });
 
@@ -65,6 +60,7 @@ describe('test check balance more', function(){
     })
 
     it('should return true', function(){
+      assert.isDefined(actual, 'result is defined');
       assert.isTrue(actual, 'present value is above maintenance value');
     });
   });
@@ -77,12 +73,7 @@ describe('test check balance less', function(){
   before(function(done){
     TraderUtils.createTraderInDB("test_user", '1000', 'password', 'apikeytest123', function(result){
       testUserID = result;
-      //create some test loans for test user
-      async.parallel([
-          TraderUtils.addLoanForTrader(testUserID, 0.1, "coinfloor", "2014-10-22 16:30:38", function(){;}),
-          TraderUtils.addLoanForTrader(testUserID, 0.23, "coinfloor", "2014-10-22 16:30:38", function(){;}),
-          TraderUtils.addLoanForTrader(testUserID, 0.4, "BTCChina", "2014-10-22 16:30:38", function(){;})
-        ], done());
+      createTestLoans(testUserID, done);
     });
   });
 
@@ -94,7 +85,7 @@ describe('test check balance less', function(){
     var GBPBalance = 0.12*XBTAskPrice;  //should equal 0.12 XBT, so total = 0.37 XBT (< total)
 
     var expected = true;
-    var actual = false
+    var actual;
 
     before(function(done){
       checkBalance.isAboveMaintenanceValue(XBTBalance, GBPBalance, XBTAskPrice, testUserID, "coinfloor", function(result){
@@ -104,6 +95,7 @@ describe('test check balance less', function(){
     })
 
     it('should return false', function(){
+      assert.isDefined(actual, 'result is defined');
       assert.isFalse(actual, 'present value is below maintenance value');
     });
   });
@@ -116,12 +108,7 @@ describe('test check balance equal', function(){
   before(function(done){
     TraderUtils.createTraderInDB("test_user", '1000', 'password', 'apikeytest123', function(result){
       testUserID = result;
-      //create some test loans for test user
-      async.parallel([
-          TraderUtils.addLoanForTrader(testUserID, 0.1, "coinfloor", "2014-10-22 16:30:38", function(){;}),
-          TraderUtils.addLoanForTrader(testUserID, 0.23, "coinfloor", "2014-10-22 16:30:38", function(){;}),
-          TraderUtils.addLoanForTrader(testUserID, 0.4, "BTCChina", "2014-10-22 16:30:38", function(){;})
-        ], done());
+      createTestLoans(testUserID, done);
     });
   });
 
@@ -143,6 +130,7 @@ describe('test check balance equal', function(){
     })
 
     it('should return true', function(){
+      assert.isDefined(actual, 'result is defined');
       assert.isTrue(actual, 'present value is equal maintenance value');
     });
   });
@@ -156,4 +144,27 @@ function clearTraderFromDB(traderID, callback){
       callback();
     });
   });
+}
+
+function createTestLoans(traderID, callback){
+   async.parallel([
+       function(callback){
+           TraderUtils.addLoanForTrader(traderID, 0.1, "coinfloor", "2014-10-22 16:30:38",  function(result){
+             callback(null, result);
+           });
+       },
+       function(callback){
+           TraderUtils.addLoanForTrader(traderID,  0.23, "coinfloor", "2014-10-22 16:30:38", function(result){
+             callback(null, result);
+           });
+       },
+       function(callback){
+           TraderUtils.addLoanForTrader(traderID, 0.4, "BTCChina", "2014-10-22 16:30:38", function(result){
+             callback(null, result);
+           });
+       }
+   ],
+   function(err, results){
+       callback();
+   });
 }
