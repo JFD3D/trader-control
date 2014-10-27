@@ -63,19 +63,29 @@ TraderUtils.getCoinfloorCredentials(trademoreID, function(credentials){
   }
 
   function executeStopLossTrade(loanAsset, counterAsset, counterTotal){
-    var assetPair = loanAsset + ':' + counterAsset;
-
     if(testMode == 0){
       //execute market order to convert total counter asset balance to loan asset
       console.log("EXECUTING REAL STOP LOSS TRADE");
-      userConnection.executeCounterMarketOrder(utils.getAssetCode(loanAsset), utils.getAssetCode(counterAsset), utils.scaleInputPrice(assetPair, counterTotal), function(result){
-        var counterAmount = utils.scaleOutputQuantity(counterAsset, result.total);
-        var baseAmount = utils.scaleOutputQuantity(loanAsset, result.quantity);
-        console.log('STOP LOSS TRADE EXECUTED: sold ' + counterAmount + counterAsset + ' for ' + baseAmount + loanAsset);
+      userConnection.executeCounterMarketOrder(utils.getAssetCode(loanAsset), utils.getAssetCode(counterAsset), utils.scaleInputQuantity(counterAsset, counterTotal), function(result){
+        if(result.error_code == 0){
+          //if trade executes partially the remaining field in the result will be non zero
+          if(result.remaining > 0){
+            var remaining = utils.scaleOutputQuantity(counterAsset, counterTotal);
+            var totalSold = counterTotal - remaining;
+            console.log('STOP LOSS TRADE EXECUTED PARTIALLY: sold ' + counterTotal + counterAsset );
+            console.log('Remaining to be liquidated: ' + remaining + counterAsset );
+
+          } else {
+            console.log('STOP LOSS TRADE EXECUTED SUCCESSFULLY: sold ' + counterTotal + counterAsset );
+          }
+        } else {
+          console.log('WARNING: STOP LOSS TRADE ATTEMPTED TO EXECUTE AND FAILED!');
+          //TODO: email notification to Trademore team here
+        }
       });
     } else {
       //execute simulated market order
-      userConnection.estimateCounterMarketOrder(utils.getAssetCode(loanAsset), utils.getAssetCode(counterAsset), utils.scaleInputPrice(assetPair, counterTotal), function(result){
+      userConnection.estimateCounterMarketOrder(utils.getAssetCode(loanAsset), utils.getAssetCode(counterAsset), utils.scaleInputQuantity(counterAsset, counterTotal), function(result){
         var counterAmount = utils.scaleOutputQuantity(counterAsset, result.total);
         var baseAmount = utils.scaleOutputQuantity(loanAsset, result.quantity);
         console.log('Estimated stop loss trade: would have sold ' + counterAmount + counterAsset + ' for ' + baseAmount + loanAsset);
