@@ -5,7 +5,11 @@ var TraderUtils = require('../lib/traderDBUtils.js');
 
 var trademoreID = process.argv[2];
 
-var testMode = process.argv[3];
+//default to test mode so cannot place trades
+var testMode = 1;
+if(process.argv[3] !== undefined){
+  testMode = process.argv[3];
+}
 
 console.log('testmode: ' + testMode);
 
