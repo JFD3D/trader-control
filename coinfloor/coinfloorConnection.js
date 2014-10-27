@@ -70,9 +70,9 @@ TraderUtils.getCoinfloorCredentials(trademoreID, function(credentials){
         if(result.error_code == 0){
           //if trade executes partially the remaining field in the result will be non zero
           if(result.remaining > 0){
-            var remaining = utils.scaleOutputQuantity(counterAsset, counterTotal);
+            var remaining = utils.scaleOutputQuantity(counterAsset, result.remaining);
             var totalSold = counterTotal - remaining;
-            console.log('STOP LOSS TRADE EXECUTED PARTIALLY: sold ' + counterTotal + counterAsset );
+            console.log('STOP LOSS TRADE EXECUTED PARTIALLY: sold ' + totalSold + counterAsset );
             console.log('Remaining to be liquidated: ' + remaining + counterAsset );
 
           } else {
