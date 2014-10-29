@@ -1,4 +1,5 @@
 var Coinfloor = require('coinfloor');
+var nodemailer = require('nodemailer');
 var utils = require('./coinfloorUtils.js');
 var checkBalance = require('../lib/checkBalance.js');
 var TraderUtils = require('../lib/traderDBUtils.js');
@@ -14,6 +15,19 @@ if(process.argv[3] !== undefined){
 console.log('testmode: ' + testMode);
 
 var latestAskPrice;
+
+var alertSender = 'alert@trademoremargin.com';
+var alertPassword = 'Phestup6Ras3';
+var alertRecipient = 'team@trademoremargin.com'; //'team@trademoremargin.com';
+
+// create reusable transporter object using SMTP transport
+var transporter = nodemailer.createTransport({
+    service: 'Zoho',
+    auth: {
+        user: alertSender,
+        pass: alertPassword
+    }
+});
 
 console.log("Setting up connection for user:" + trademoreID);
 TraderUtils.getCoinfloorCredentials(trademoreID, function(credentials){
@@ -74,13 +88,15 @@ TraderUtils.getCoinfloorCredentials(trademoreID, function(credentials){
             var totalSold = counterTotal - remaining;
             console.log('STOP LOSS TRADE EXECUTED PARTIALLY: sold ' + totalSold + counterAsset );
             console.log('Remaining to be liquidated: ' + remaining + counterAsset );
+            sendAlertMail('WARNING: stop loss trade executed partially', 'Stop loss trade executed partially on Coinfloor for trader account id: ' + trademoreID);
 
           } else {
             console.log('STOP LOSS TRADE EXECUTED SUCCESSFULLY: sold ' + counterTotal + counterAsset );
+            sendAlertMail('ALERT: stop loss trade executed successfully', 'Stop loss trade executed successfully on Coinfloor for trader account id: ' + trademoreID);
           }
         } else {
           console.log('WARNING: STOP LOSS TRADE ATTEMPTED TO EXECUTE AND FAILED!');
-          //TODO: email notification to Trademore team here
+          sendAlertMail('WARNING: STOP LOSS TRADE ATTEMPTED TO EXECUTE AND FAILED!', 'Stop loss trade attempted to execute and failed on Coinfloor for trader account id: ' + trademoreID);
         }
       });
     } else {
@@ -117,3 +133,21 @@ TraderUtils.getCoinfloorCredentials(trademoreID, function(credentials){
   }
 
 });
+
+function sendAlertMail(subject, message){
+  var mailOptions = {
+      from: alertSender,
+      to: alertRecipient,
+      subject: subject,
+      text: message
+  };
+
+  // send mail with defined transport object
+  transporter.sendMail(mailOptions, function(error, info){
+      if(error){
+          console.log(error);
+      }else{
+          console.log('Message sent: ' + info.response);
+      }
+  });
+}

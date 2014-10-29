@@ -8,6 +8,7 @@
     "mocha": "",
     "chai": "",
     "mysql": "",
-    "async": ""
+    "async": "",
+    "nodemailer": "1.3.0"
   }
 }
