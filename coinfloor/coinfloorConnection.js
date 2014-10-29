@@ -32,7 +32,6 @@ var transporter = nodemailer.createTransport({
 console.log("Setting up connection for user:" + trademoreID);
 TraderUtils.getCoinfloorCredentials(trademoreID, function(credentials){
   userConnection = new Coinfloor(credentials.coinfloorID, credentials.coinfloorPassword, credentials.coinfloorAPIKey, onConnect);
-  console.log('credentials');
   function onConnect(){
     userConnection.watchTicker(utils.getAssetCode("XBT"), utils.getAssetCode("GBP"), true, function(ticker){
         updateAskPrice(getScaledAskPrice(ticker, "XBT:GBP"));
