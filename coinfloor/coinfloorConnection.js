@@ -3,14 +3,23 @@ var nodemailer = require('nodemailer');
 var utils = require('./coinfloorUtils.js');
 var checkBalance = require('../lib/checkBalance.js');
 var TraderUtils = require('../lib/traderDBUtils.js');
+var mySQLWrapper = require('../lib/mySQLWrapper.js');
+var credentials = require('../credentials/mySQLlogin.json');
 
-var trademoreID = process.argv[2];
+if(process.argv[2] !== undefined){
+  var trademoreID = process.argv[2];
+} else {
+  console.log('ERROR: you did not provide a Trademore userID as an argument');
+  process.exit(1);
+}
 
 //default to test mode so cannot place trades
 var testMode = 1;
 if(process.argv[3] !== undefined){
   testMode = process.argv[3];
 }
+
+var mySQLConnection = new mySQLWrapper(credentials.mysql_host, credentials.user, credentials.password, credentials.database);
 
 console.log('testmode: ' + testMode);
 
@@ -29,8 +38,8 @@ var transporter = nodemailer.createTransport({
     }
 });
 
-console.log("Setting up connection for user:" + trademoreID);
-TraderUtils.getCoinfloorCredentials(trademoreID, function(credentials){
+console.log("Setting up connection for user: " + trademoreID);
+TraderUtils.getCoinfloorCredentials(trademoreID, mySQLConnection, function(credentials){
   userConnection = new Coinfloor(credentials.coinfloorID, credentials.coinfloorPassword, credentials.coinfloorAPIKey, onConnect);
   function onConnect(){
     userConnection.watchTicker(utils.getAssetCode("XBT"), utils.getAssetCode("GBP"), true, function(ticker){
@@ -64,7 +73,7 @@ TraderUtils.getCoinfloorCredentials(trademoreID, function(credentials){
     console.log('GBP balance = ' + GBPbalance);
     console.log('XBT balance = ' + XBTbalance);
     console.log('ask price = ' + latestAskPrice);
-    checkBalance.isAboveMaintenanceValue(XBTbalance, GBPbalance, latestAskPrice, trademoreID, "coinfloor", function(result){
+    checkBalance.isAboveMaintenanceValue(XBTbalance, GBPbalance, latestAskPrice, trademoreID, "coinfloor", mySQLConnection, function(result){
       if(result){
         console.log("Value check passed: value of account is above minimum requirement");
       } else {
