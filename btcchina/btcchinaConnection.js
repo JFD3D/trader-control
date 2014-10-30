@@ -79,42 +79,26 @@ TraderUtils.getBTChinaCredentials(trademoreID, mySQLConnection, function(credent
         console.log("Value check passed: value of account is above minimum requirement");
       } else {
         console.log("Value check failed: value of account is below minimum requirement");
-        // executeStopLossTrade("XBT", "CNY", CNYbalance);
+      executeStopLossTrade("BTC", "CNY", 9000/*CNYBalance*/);
       }
     });
 
   }
 
-  function executeStopLossTrade(loanAsset, counterAsset, counterTotal){
+  function executeStopLossTrade(loanAsset, counterAsset, counterAmount){
+    //calculated amount of base currency to buy based on latest ask price and counterTotal
+    var baseAmount = counterAmount/latestAskPrice;
+
     if(testMode == 0){
       //execute market order to convert total counter asset balance to loan asset
       console.log("EXECUTING REAL STOP LOSS TRADE");
-      userConnection.executeCounterMarketOrder(utils.getAssetCode(loanAsset), utils.getAssetCode(counterAsset), utils.scaleInputQuantity(counterAsset, counterTotal), function(result){
-        if(result.error_code == 0){
-          //if trade executes partially the remaining field in the result will be non zero
-          if(result.remaining > 0){
-            var remaining = utils.scaleOutputQuantity(counterAsset, result.remaining);
-            var totalSold = counterTotal - remaining;
-            console.log('STOP LOSS TRADE EXECUTED PARTIALLY: sold ' + totalSold + counterAsset );
-            console.log('Remaining to be liquidated: ' + remaining + counterAsset );
-            sendAlertMail('WARNING: stop loss trade executed partially', 'Stop loss trade executed partially on BTCChina for trader account id: ' + trademoreID);
+      btcchinaConn.buyOrder2(null, baseAmount, function(err, response){
+        console.log(response);
+      });
+      //TODO: add email notifications
 
-          } else {
-            console.log('STOP LOSS TRADE EXECUTED SUCCESSFULLY: sold ' + counterTotal + counterAsset );
-            sendAlertMail('ALERT: stop loss trade executed successfully', 'Stop loss trade executed successfully on BTCChina for trader account id: ' + trademoreID);
-          }
-        } else {
-          console.log('WARNING: STOP LOSS TRADE ATTEMPTED TO EXECUTE AND FAILED!');
-          sendAlertMail('WARNING: STOP LOSS TRADE ATTEMPTED TO EXECUTE AND FAILED!', 'Stop loss trade attempted to execute and failed on BTCChina for trader account id: ' + trademoreID);
-        }
-      });
     } else {
-      //execute simulated market order
-      userConnection.estimateCounterMarketOrder(utils.getAssetCode(loanAsset), utils.getAssetCode(counterAsset), utils.scaleInputQuantity(counterAsset, counterTotal), function(result){
-        var counterAmount = utils.scaleOutputQuantity(counterAsset, result.total);
-        var baseAmount = utils.scaleOutputQuantity(loanAsset, result.quantity);
-        console.log('Estimated stop loss trade: would have sold ' + counterAmount + counterAsset + ' for ' + baseAmount + loanAsset);
-      });
+      console.log('Executing stop loss trade in test mode: would have sold ' + counterAmount + counterAsset + ' for ' + baseAmount + loanAsset);
     }
   }
 
