@@ -3,6 +3,7 @@ var async = require('async');
 var checkBalance = require('../lib/checkBalance.js');
 var TraderUtils = require('../lib/traderDBUtils.js');
 var testUtils = require('./testUtils.js');
+var mySQLWrapper = require('../lib/mySQLWrapper.js');
 
 var valueDelta = 0.00000001; //acceptable error for numerical quantities (accurate to 1 satoshi)
 
@@ -33,13 +34,16 @@ describe('test check balance non async functions',function(){
 
 });
 
+var testUserID;
+var mySQLConnection = new mySQLWrapper('localhost', 'root', 'root', 'bitcoinloanstest');
+
 describe('test check balance more', function(){
-  var testUserID;
 
   before(function(done){
-    TraderUtils.createTraderInDB("test_user", '1000', 'password', 'apikeytest123', function(result){
+    TraderUtils.createTraderInDB("test_user", '1000', 'password', 'apikeytest123', mySQLConnection, function(result){
       testUserID = result;
-      testUtils.createTestLoans(testUserID, done);
+      testUtils.createTestLoans(testUserID, mySQLConnection, function(result){;});
+      done();
     });
   });
 
@@ -54,9 +58,9 @@ describe('test check balance more', function(){
     var actual = false
 
     before(function(done){
-      checkBalance.isAboveMaintenanceValue(XBTBalance, GBPBalance, XBTAskPrice, testUserID, "coinfloor", function(result){
+      checkBalance.isAboveMaintenanceValue(XBTBalance, GBPBalance, XBTAskPrice, testUserID, "coinfloor", mySQLConnection, function(result){
         actual = result;
-        testUtils.clearTraderFromDB(testUserID, done);
+        done();
       });
     })
 
@@ -69,14 +73,6 @@ describe('test check balance more', function(){
 });
 
 describe('test check balance less', function(){
-  var testUserID;
-
-  before(function(done){
-    TraderUtils.createTraderInDB("test_user", '1000', 'password', 'apikeytest123', function(result){
-      testUserID = result;
-      testUtils.createTestLoans(testUserID, done);
-    });
-  });
 
   describe('lower than minimum value',function(){
     //total loans on coinfloor = 0.33XBT
@@ -89,9 +85,9 @@ describe('test check balance less', function(){
     var actual;
 
     before(function(done){
-      checkBalance.isAboveMaintenanceValue(XBTBalance, GBPBalance, XBTAskPrice, testUserID, "coinfloor", function(result){
+      checkBalance.isAboveMaintenanceValue(XBTBalance, GBPBalance, XBTAskPrice, testUserID, "coinfloor", mySQLConnection, function(result){
         actual = result;
-        testUtils.clearTraderFromDB(testUserID, done);
+        done();
       });
     })
 
@@ -104,14 +100,6 @@ describe('test check balance less', function(){
 });
 
 describe('test check balance equal', function(){
-  var testUserID;
-
-  before(function(done){
-    TraderUtils.createTraderInDB("test_user", '1000', 'password', 'apikeytest123', function(result){
-      testUserID = result;
-      testUtils.createTestLoans(testUserID, done);
-    });
-  });
 
   describe('equal to minimum value',function(){
     //total loans on coinfloor = 0.33XBT
@@ -124,9 +112,9 @@ describe('test check balance equal', function(){
     var actual = false
 
     before(function(done){
-      checkBalance.isAboveMaintenanceValue(XBTBalance, GBPBalance, XBTAskPrice, testUserID, "coinfloor", function(result){
+      checkBalance.isAboveMaintenanceValue(XBTBalance, GBPBalance, XBTAskPrice, testUserID, "coinfloor", mySQLConnection, function(result){
         actual = result;
-        testUtils.clearTraderFromDB(testUserID, done);
+        done();
       });
     })
 
@@ -135,5 +123,21 @@ describe('test check balance equal', function(){
       assert.isTrue(actual, 'present value is equal maintenance value');
     });
   });
+
+});
+
+describe('clean up trader in DB', function(){
+  var actual;
+
+  before(function(done){
+    testUtils.clearTraderFromDB(testUserID, mySQLConnection, function(result){
+          actual = result.affectedRows;
+          done();
+        });
+    });
+
+    it('check it deleted the trader', function(){
+      assert.equal(actual, 1, "deleted one row");
+    });
 
 });

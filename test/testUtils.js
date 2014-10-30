@@ -30,7 +30,7 @@ module.exports = {
          }
      ],
      function(err, results){
-         callback();
+         callback(results);
      });
    }
  }

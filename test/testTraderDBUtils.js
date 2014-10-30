@@ -4,11 +4,12 @@ var TraderUtils = require('../lib/traderDBUtils.js');
 var testUtils = require('./testUtils.js');
 var mySQLWrapper = require('../lib/mySQLWrapper.js');
 
+var mySQLConnection = new mySQLWrapper('localhost', 'root', 'root', 'bitcoinloanstest');
+
 var testCoinfloorID = 1000;
 var testCoinfloorPassword = "password";
 var testCoinfloorAPIKey = "apikey162";
 var testUserID;
-var mySQLConnection = new mySQLWrapper('localhost', 'root', 'root', 'bitcoinloanstest');
 
 describe('test trader DB Utils', function(){
   //set up trader object and loans in the DB before all tests
@@ -87,10 +88,27 @@ describe('test set maintenance margin', function(){
 
 });
 
+describe('test create loans', function(){
+  var actual;
+
+  before(function(done){
+    testUtils.createTestLoans(testUserID, mySQLConnection, function(result){
+        actual = result;
+        console.log(result);
+        done();
+      });
+  });
+
+  it('check result is an array', function(){
+    assert.isArray(actual, "result is an array");
+    assert.lengthOf(actual, 3, "array is expected length");
+  });
+
+});
+
 describe('test get all loans for user', function(){
   var actual;
   before(function(done){
-    testUtils.createTestLoans(testUserID, mySQLConnection, function(result){ console.log(result) });
     TraderUtils.getAllLoans(testUserID, mySQLConnection, function(result){
       actual = result;
       done();
