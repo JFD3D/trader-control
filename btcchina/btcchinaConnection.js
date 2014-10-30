@@ -1,6 +1,6 @@
+var btcchina = require('btcchina');
+var socket = require('socket.io-client')('https://websocket.btcchina.com/');
 var nodemailer = require('nodemailer');
-var Coinfloor = require('coinfloor');
-var utils = require('./coinfloorUtils.js');
 var checkBalance = require('../lib/checkBalance.js');
 var TraderUtils = require('../lib/traderDBUtils.js');
 var mySQLWrapper = require('../lib/mySQLWrapper.js');
@@ -44,30 +44,22 @@ var transporter = nodemailer.createTransport({
 
 console.log("Setting up connection for user: " + trademoreID);
 TraderUtils.getCoinfloorCredentials(trademoreID, mySQLConnection, function(credentials){
-  userConnection = new Coinfloor(credentials.coinfloorID, credentials.coinfloorPassword, credentials.coinfloorAPIKey, onConnect);
-  function onConnect(){
-    userConnection.watchTicker(utils.getAssetCode("XBT"), utils.getAssetCode("GBP"), true, function(ticker){
-        updateAskPrice(getScaledAskPrice(ticker, "XBT:GBP"));
-      });
 
-    userConnection.getBalances(function(msg){
-        stopLossCheck(msg.balances)
-      });
-  };
-
-  userConnection.addEventListener("TickerChanged", function(ticker){
-    updateAskPrice(getScaledAskPrice(ticker, "XBT:GBP"));
-
-    userConnection.getBalances(function(msg){
-        stopLossCheck(msg.balances)
-      });
+  //create btcchina connection with socket.io and add event listener to ticker (do not need to authenticate)
+  socket.emit('subscribe', ['marketdata_cnybtc']);
+  socket.on('connect', function(){
+      console.log("Connected to BTCChina websocket API.");
+      socket.on('ticker', onTicker);
   });
 
-  userConnection.addEventListener("BalanceChanged", function(tickerMsg){
-    userConnection.getBalances(function(msg){
-        stopLossCheck(msg.balances)
-      });
-  });
+  function onTicker(result){
+    console.log("Latest ask price: " + result.ticker.sell);
+    //update ticker
+    updateAskPrice(result.ticker.sell);
+
+    //check balance for user with btchina modules
+  }
+
 
   function stopLossCheck(balances){
     console.log(balances);
@@ -77,7 +69,7 @@ TraderUtils.getCoinfloorCredentials(trademoreID, mySQLConnection, function(crede
     console.log('GBP balance = ' + GBPbalance);
     console.log('XBT balance = ' + XBTbalance);
     console.log('ask price = ' + latestAskPrice);
-    checkBalance.isAboveMaintenanceValue(XBTbalance, GBPbalance, latestAskPrice, trademoreID, "coinfloor", mySQLConnection, function(result){
+    checkBalance.isAboveMaintenanceValue(XBTbalance, GBPbalance, latestAskPrice, trademoreID, "btcchina", mySQLConnection, function(result){
       if(result){
         console.log("Value check passed: value of account is above minimum requirement");
       } else {
@@ -100,15 +92,15 @@ TraderUtils.getCoinfloorCredentials(trademoreID, mySQLConnection, function(crede
             var totalSold = counterTotal - remaining;
             console.log('STOP LOSS TRADE EXECUTED PARTIALLY: sold ' + totalSold + counterAsset );
             console.log('Remaining to be liquidated: ' + remaining + counterAsset );
-            sendAlertMail('WARNING: stop loss trade executed partially', 'Stop loss trade executed partially on Coinfloor for trader account id: ' + trademoreID);
+            sendAlertMail('WARNING: stop loss trade executed partially', 'Stop loss trade executed partially on BTCChina for trader account id: ' + trademoreID);
 
           } else {
             console.log('STOP LOSS TRADE EXECUTED SUCCESSFULLY: sold ' + counterTotal + counterAsset );
-            sendAlertMail('ALERT: stop loss trade executed successfully', 'Stop loss trade executed successfully on Coinfloor for trader account id: ' + trademoreID);
+            sendAlertMail('ALERT: stop loss trade executed successfully', 'Stop loss trade executed successfully on BTCChina for trader account id: ' + trademoreID);
           }
         } else {
           console.log('WARNING: STOP LOSS TRADE ATTEMPTED TO EXECUTE AND FAILED!');
-          sendAlertMail('WARNING: STOP LOSS TRADE ATTEMPTED TO EXECUTE AND FAILED!', 'Stop loss trade attempted to execute and failed on Coinfloor for trader account id: ' + trademoreID);
+          sendAlertMail('WARNING: STOP LOSS TRADE ATTEMPTED TO EXECUTE AND FAILED!', 'Stop loss trade attempted to execute and failed on BTCChina for trader account id: ' + trademoreID);
         }
       });
     } else {
@@ -119,23 +111,6 @@ TraderUtils.getCoinfloorCredentials(trademoreID, mySQLConnection, function(crede
         console.log('Estimated stop loss trade: would have sold ' + counterAmount + counterAsset + ' for ' + baseAmount + loanAsset);
       });
     }
-  }
-
-  function getScaledBalance(assetString, balances){
-    var balanceObj = balances.filter(function getValue(element){
-                                        return element.asset === utils.getAssetCode(assetString);
-                                      });
-    if(balanceObj[0] !== undefined){
-      return utils.scaleOutputQuantity(assetString, balanceObj[0].balance);
-    } else {
-      console.log("Warning: no balance given for asset: " + assetString);
-      return 0;
-    }
-  }
-
-  function getScaledAskPrice(ticker, assetPair){
-    var ask = ticker.ask;
-    return utils.scaleOutputPrice(assetPair, ask);
   }
 
   function updateAskPrice(newAskPrice){

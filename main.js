@@ -30,7 +30,7 @@ prompt.get(schema, function (err, result) {
   var trademoreID = traderUtils.getAllTraders(mySQLConnection, function(result){
     result.forEach(function(trader){
       launchStopLoss(mysql_database, mysql_user, mysql_password, trader.borrower_id, "coinfloor", testMode);
-      launchStopLoss(mysql_database, mysql_user, mysql_password, trader.borrower_id, "btcchina", testMode);
+      // launchStopLoss(mysql_database, mysql_user, mysql_password, trader.borrower_id, "btcchina", testMode);
     });
   });
 });
