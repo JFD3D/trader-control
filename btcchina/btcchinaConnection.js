@@ -47,36 +47,39 @@ TraderUtils.getBTChinaCredentials(trademoreID, mySQLConnection, function(credent
   console.log(credentials);
   btcchinaConn = new BTCChina(credentials.btcchinaKey, credentials.btcchinaSecret);
 
-  //create btcchina connection with socket.io and add event listener to ticker (do not need to authenticate)
-  // socket.emit('subscribe', ['marketdata_cnybtc']);
-  // socket.on('connect', function(){
-  //     console.log("Connected to BTCChina websocket API.");
-  //     socket.on('ticker', onTicker);
-  // });
-  //
-  // function onTicker(result){
-  //   console.log("Latest ask price: " + result.ticker.sell);
-  //   //update ticker
-  //   updateAskPrice(result.ticker.sell);
-  //
-  //   //check balance for user with btchina modules
-  // }
+  // create btcchina connection with socket.io and add event listener to ticker (do not need to authenticate)
+  socket.emit('subscribe', ['marketdata_cnybtc']);
+  socket.on('connect', function(){
+      console.log("Connected to BTCChina websocket API.");
+      socket.on('ticker', onTicker);
+  });
 
+  function onTicker(result){
+    //update ticker
+    updateAskPrice(result.ticker.sell);
 
-  function stopLossCheck(balances){
-    console.log(balances);
-    var GBPbalance = getScaledBalance("GBP", balances);
-    var XBTbalance = getScaledBalance("XBT", balances);
+    //check balance for trader
+    btcchinaConn.getAccountInfo(function(err, response){
+      // console.log(response.result.balance);
+      var BTCBalance = response.result.balance.btc.amount;
+      var CNYBalance = response.result.balance.cny.amount;
 
-    console.log('GBP balance = ' + GBPbalance);
-    console.log('XBT balance = ' + XBTbalance);
+      //perform stop loss check
+      stopLossCheck(BTCBalance, CNYBalance);
+    });
+  }
+
+  function stopLossCheck(BTCBalance, CNYBalance){
+    console.log('CNY balance = ' + CNYBalance);
+    console.log('BTC balance = ' + BTCBalance);
     console.log('ask price = ' + latestAskPrice);
-    checkBalance.isAboveMaintenanceValue(XBTbalance, GBPbalance, latestAskPrice, trademoreID, "btcchina", mySQLConnection, function(result){
+
+    checkBalance.isAboveMaintenanceValue(BTCBalance, CNYBalance, latestAskPrice, trademoreID, "btcchina", mySQLConnection, function(result){
       if(result){
         console.log("Value check passed: value of account is above minimum requirement");
       } else {
         console.log("Value check failed: value of account is below minimum requirement");
-        executeStopLossTrade("XBT", "GBP", GBPbalance);
+        // executeStopLossTrade("XBT", "CNY", CNYbalance);
       }
     });
 
