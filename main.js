@@ -29,14 +29,26 @@ prompt.get(schema, function (err, result) {
 
   var trademoreID = traderUtils.getAllTraders(mySQLConnection, function(result){
     result.forEach(function(trader){
-      launchStopLoss(mysql_database, mysql_user, mysql_password, trader.borrower_id, testMode);
+      launchStopLoss(mysql_database, mysql_user, mysql_password, trader.borrower_id, "coinfloor", testMode);
+      launchStopLoss(mysql_database, mysql_user, mysql_password, trader.borrower_id, "btcchina", testMode);
     });
   });
 });
 
-function launchStopLoss(mysql_database, mysql_user, mysql_password, traderID, testMode){
+function launchStopLoss(mysql_database, mysql_user, mysql_password, traderID, exchange, testMode){
   var date = new Date();
-  var command = "node coinfloor/coinfloorConnection.js ";
+  var command = "";
+
+  if(exchange.indexOf("coinfloor") != -1){
+    console.log("running stop loss for user " + traderID + " on Coinfloor")
+    var command = "node coinfloor/coinfloorConnection.js ";
+  } else if(exchange.indexOf("btcchina") != -1) {
+    console.log("running stop loss for user " + traderID + " on BTCChina")
+    var command = "node btcchina/btcchinaConnection.js ";
+  } else {
+    throw("no exchange selected for stop loss process");
+  }
+
   command += mysql_database + " ";
   command += mysql_user + " ";
   command += mysql_password + " ";
