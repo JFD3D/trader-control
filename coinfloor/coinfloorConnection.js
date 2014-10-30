@@ -6,6 +6,9 @@ var TraderUtils = require('../lib/traderDBUtils.js');
 var mySQLWrapper = require('../lib/mySQLWrapper.js');
 var credentials = require('../credentials/mySQLlogin.json');
 
+var mysql_host = "localhost";
+var mysql_database = "bitcoinloans";
+
 if(process.argv[2] !== undefined){
   var trademoreID = process.argv[2];
 } else {
@@ -19,7 +22,7 @@ if(process.argv[3] !== undefined){
   testMode = process.argv[3];
 }
 
-var mySQLConnection = new mySQLWrapper(credentials.mysql_host, credentials.user, credentials.password, credentials.database);
+var mySQLConnection = new mySQLWrapper(mysql_host, credentials.user, credentials.password, mysql_database);
 
 console.log('testmode: ' + testMode);
 
