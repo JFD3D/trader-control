@@ -31,7 +31,6 @@ var latestAskPrice;
 
 var alertSender = 'alert@trademoremargin.com';
 var alertPassword = 'Phestup6Ras3';
-var alertRecipient = 'team@trademoremargin.com';
 
 var email = new emailSender(alertSender, alertPassword, 'zoho');
 

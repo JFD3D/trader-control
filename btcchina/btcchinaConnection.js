@@ -4,6 +4,7 @@ var nodemailer = require('nodemailer');
 var checkBalance = require('../lib/checkBalance.js');
 var TraderUtils = require('../lib/traderDBUtils.js');
 var mySQLWrapper = require('../lib/mySQLWrapper.js');
+var emailSender = require("../lib/emailUtils.js");
 
 var mysql_host = "localhost";
 var mysql_database = process.argv[2];
@@ -31,7 +32,8 @@ var latestAskPrice;
 
 var alertSender = 'alert@trademoremargin.com';
 var alertPassword = 'Phestup6Ras3';
-var alertRecipient = 'team@trademoremargin.com'; //'team@trademoremargin.com';
+
+var email = new emailSender(alertSender, alertPassword, 'zoho');
 
 // create reusable transporter object using SMTP transport
 var transporter = nodemailer.createTransport({
@@ -94,8 +96,9 @@ TraderUtils.getBTChinaCredentials(trademoreID, mySQLConnection, function(credent
       console.log("EXECUTING REAL STOP LOSS TRADE");
       btcchinaConn.buyOrder2(null, baseAmount, function(err, response){
         console.log(response);
+        //TODO: handle response and errors
+        email.sendAlertMail('ALERT: stop loss trade executed successfully', 'Stop loss trade executed successfully on Coinfloor for trader account id: ' + trademoreID);
       });
-      //TODO: add email notifications
 
     } else {
       console.log('Executing stop loss trade in test mode: would have sold ' + counterAmount + counterAsset + ' for ' + baseAmount + loanAsset);
@@ -109,21 +112,3 @@ TraderUtils.getBTChinaCredentials(trademoreID, mySQLConnection, function(credent
   }
 
 });
-
-function sendAlertMail(subject, message){
-  var mailOptions = {
-      from: alertSender,
-      to: alertRecipient,
-      subject: subject,
-      text: message
-  };
-
-  // send mail with defined transport object
-  transporter.sendMail(mailOptions, function(error, info){
-      if(error){
-          console.log(error);
-      }else{
-          console.log('Message sent: ' + info.response);
-      }
-  });
-}
