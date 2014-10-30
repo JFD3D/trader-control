@@ -31,7 +31,7 @@ var latestAskPrice;
 
 var alertSender = 'alert@trademoremargin.com';
 var alertPassword = 'Phestup6Ras3';
-var alertRecipient = 'team@trademoremargin.com'; //'team@trademoremargin.com';
+var alertRecipient = 'team@trademoremargin.com';
 
 // create reusable transporter object using SMTP transport
 var transporter = nodemailer.createTransport({
