@@ -81,7 +81,7 @@ TraderUtils.getBTChinaCredentials(trademoreID, mySQLConnection, function(credent
         console.log("Value check passed: value of account is above minimum requirement");
       } else {
         console.log("Value check failed: value of account is below minimum requirement");
-      executeStopLossTrade("BTC", "CNY", 9000/*CNYBalance*/);
+      executeStopLossTrade("BTC", "CNY", CNYBalance);
       }
     });
 

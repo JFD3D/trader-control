@@ -69,6 +69,20 @@ TraderUtils.getCoinfloorCredentials(trademoreID, mySQLConnection, function(crede
     console.log('GBP balance = ' + GBPbalance);
     console.log('XBT balance = ' + XBTbalance);
     console.log('ask price = ' + latestAskPrice);
+
+    //send an email to notify the user if their account value has fallen below a certain level
+    checkBalance.isAboveUserNotificationThreshold(XBTbalance, GBPbalance, latestAskPrice, trademoreID, "coinfloor", mySQLConnection, function(result){
+      if(result){
+        console.log("Notification threshold check passed: value of account is above minimum requirement");
+      } else {
+        console.log("Notification threshold: sending notification email");
+        TraderUtils.getContactEmail(trademoreID, mySQLConnection, function(address){
+          email.sendThresholdNotificationMail('Your account has fallen below the threshold', 'Your current balance is...', address);
+        });
+      }
+    });
+
+    //check if we need to place a stop loss trade
     checkBalance.isAboveMaintenanceValue(XBTbalance, GBPbalance, latestAskPrice, trademoreID, "coinfloor", mySQLConnection, function(result){
       if(result){
         console.log("Value check passed: value of account is above minimum requirement");
