@@ -1,4 +1,4 @@
-var btcchina = require('btcchina');
+var BTCChina = require('btcchina');
 var socket = require('socket.io-client')('https://websocket.btcchina.com/');
 var nodemailer = require('nodemailer');
 var checkBalance = require('../lib/checkBalance.js');
@@ -43,22 +43,24 @@ var transporter = nodemailer.createTransport({
 });
 
 console.log("Setting up connection for user: " + trademoreID);
-TraderUtils.getCoinfloorCredentials(trademoreID, mySQLConnection, function(credentials){
+TraderUtils.getBTChinaCredentials(trademoreID, mySQLConnection, function(credentials){
+  console.log(credentials);
+  btcchinaConn = new BTCChina(credentials.btcchinaKey, credentials.btcchinaSecret);
 
   //create btcchina connection with socket.io and add event listener to ticker (do not need to authenticate)
-  socket.emit('subscribe', ['marketdata_cnybtc']);
-  socket.on('connect', function(){
-      console.log("Connected to BTCChina websocket API.");
-      socket.on('ticker', onTicker);
-  });
-
-  function onTicker(result){
-    console.log("Latest ask price: " + result.ticker.sell);
-    //update ticker
-    updateAskPrice(result.ticker.sell);
-
-    //check balance for user with btchina modules
-  }
+  // socket.emit('subscribe', ['marketdata_cnybtc']);
+  // socket.on('connect', function(){
+  //     console.log("Connected to BTCChina websocket API.");
+  //     socket.on('ticker', onTicker);
+  // });
+  //
+  // function onTicker(result){
+  //   console.log("Latest ask price: " + result.ticker.sell);
+  //   //update ticker
+  //   updateAskPrice(result.ticker.sell);
+  //
+  //   //check balance for user with btchina modules
+  // }
 
 
   function stopLossCheck(balances){
