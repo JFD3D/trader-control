@@ -5,10 +5,9 @@ module.exports = {
 
   //delete test trader and all loans
   clearTraderFromDB: function(traderID, mysqlConn, callback){
-    TraderUtils.deleteAllLoans(traderID, mysqlConn, function(){
-      TraderUtils.deleteTraderFromDB(traderID, mysqlConn, function(){
-        callback();
-      });
+    TraderUtils.deleteAllLoans(traderID, mysqlConn, function(){;});
+    TraderUtils.deleteTraderFromDB(traderID, mysqlConn, function(result){
+      callback(result);
     });
   },
 

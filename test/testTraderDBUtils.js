@@ -10,17 +10,16 @@ var testCoinfloorAPIKey = "apikey162";
 var testUserID;
 var mySQLConnection = new mySQLWrapper('localhost', 'root', 'root', 'bitcoinloanstest');
 
-describe('test create trader', function(){
-  var testUserID;
+describe('test trader DB Utils', function(){
+  //set up trader object and loans in the DB before all tests
   before(function(done){
     TraderUtils.createTraderInDB("test_user", testCoinfloorID, testCoinfloorPassword, testCoinfloorAPIKey, mySQLConnection, function(result){
       testUserID = result;
-      TraderUtils.deleteTraderFromDB(result, mySQLConnection, function(){});
       done();
     });
   });
 
-  it('should return an id',function(){
+  it('should return an id for the trader created',function(){
     assert.isNumber(testUserID, "is an id number");
     assert.operator(testUserID, '>', 0, 'non-zero id');
   });
@@ -28,17 +27,11 @@ describe('test create trader', function(){
 });
 
 describe('test get coinfloor credentials', function(){
-  var testUserID;
   var res;
-
   before(function(done){
-    TraderUtils.createTraderInDB("test_user", testCoinfloorID, testCoinfloorPassword, testCoinfloorAPIKey, mySQLConnection, function(result){
-      testUserID = result;
-      TraderUtils.getCoinfloorCredentials(testUserID, mySQLConnection, function(result){
-        res = result;
-        TraderUtils.deleteTraderFromDB(testUserID, mySQLConnection, function(){});
-        done();
-      });
+    TraderUtils.getCoinfloorCredentials(testUserID, mySQLConnection, function(result){
+      res = result;
+      done();
     });
   });
 
@@ -61,146 +54,121 @@ describe('test get coinfloor credentials', function(){
 });
 
 describe('test get maintenance margin', function(){
-  var testUserID;
-
+  var expected = 0.2;
+  var actual;
   before(function(done){
-    TraderUtils.createTraderInDB("test_user", testCoinfloorID, testCoinfloorPassword, testCoinfloorAPIKey, mySQLConnection, function(result){
-      testUserID = result;
+    TraderUtils.getMaintenanceReq(testUserID, mySQLConnection, function(result){
+      actual = result;
       done();
     });
   });
 
-  describe('test default maintenance margin', function(){
-    var expected = 0.2;
-    var actual;
-    before(function(done){
-      TraderUtils.getMaintenanceReq(testUserID, mySQLConnection, function(result){
-        actual = result;
-        TraderUtils.deleteTraderFromDB(testUserID, mySQLConnection, function(){});
-        done();
-      });
-    });
-
-    it('check default maintenance margin', function(){
-      assert.equal(actual, expected, "maintenance margin correct");
-    });
-
+  it('check default maintenance margin', function(){
+    assert.equal(actual, expected, "maintenance margin correct");
   });
 
 });
 
 describe('test set maintenance margin', function(){
-  var testUserID;
   var expected = 0.3;
+  var actual;
 
   before(function(done){
-    TraderUtils.createTraderInDB("test_user", testCoinfloorID, testCoinfloorPassword, testCoinfloorAPIKey, mySQLConnection, function(result){
-        testUserID = result;
-        TraderUtils.setMaintenanceReq(testUserID, expected, mySQLConnection, function(result){
-        done();
-      });
+    TraderUtils.setMaintenanceReq(testUserID, expected, mySQLConnection, function(result){});
+    TraderUtils.getMaintenanceReq(testUserID, mySQLConnection, function(result){
+      actual = result;
+      done();
     });
   });
 
-  describe('test default maintenance margin', function(){
-    var actual;
-    before(function(done){
-      TraderUtils.getMaintenanceReq(testUserID, mySQLConnection, function(result){
-        actual = result;
-        var user = testUserID;
-        TraderUtils.deleteTraderFromDB(user, mySQLConnection, function(){});
-        done();
-      });
-    });
-
-    it('check default maintenance margin', function(){
-      assert.equal(actual, expected, "maintenance margin correct");
-    });
-
+  it('check default maintenance margin', function(){
+    assert.equal(actual, expected, "maintenance margin correct");
   });
 
 });
 
 describe('test get all loans for user', function(){
-  var testUserID;
-
+  var actual;
   before(function(done){
-    TraderUtils.createTraderInDB("test_user", testCoinfloorID, testCoinfloorPassword, testCoinfloorAPIKey, mySQLConnection, function(result){
-        testUserID = result;
-        testUtils.createTestLoans(testUserID, mySQLConnection, done);
+    testUtils.createTestLoans(testUserID, mySQLConnection, function(result){ console.log(result) });
+    TraderUtils.getAllLoans(testUserID, mySQLConnection, function(result){
+      actual = result;
+      done();
     });
   });
 
-  describe('test get all loans', function(){
-    var actual;
-    before(function(done){
-      TraderUtils.getAllLoans(testUserID, function(result){
-        actual = result;
-        testUtils.clearTraderFromDB(testUserID, mySQLConnection, done);
-      });
-    });
-
-    it('check result is an array', function(){
-      assert.isArray(actual, "result is an array");
-      assert.lengthOf(actual, 3, "array is expected length");
-    });
-
+  it('check result is an array', function(){
+    assert.isArray(actual, "result is an array");
+    assert.lengthOf(actual, 3, "array is expected length");
   });
 
 });
 
 describe('test get all loans for an exchange for user', function(){
-  var testUserID;
+  var actual;
 
   before(function(done){
-    TraderUtils.createTraderInDB("test_user", testCoinfloorID, testCoinfloorPassword, testCoinfloorAPIKey, mySQLConnection, function(result){
-        testUserID = result;
-        testUtils.createTestLoans(testUserID, mySQLConnection, done);
+    TraderUtils.getLoansForExchange(testUserID, "coinfloor", mySQLConnection, function(result){
+      actual = result;
+      done();
     });
   });
 
-  describe('test get all loans for exchange', function(){
-    var actual;
-    before(function(done){
-      TraderUtils.getLoansForExchange(testUserID, "coinfloor", mySQLConnection, function(result){
-        actual = result;
-        testUtils.clearTraderFromDB(testUserID, mySQLConnection, done);
-      });
-    });
-
-    it('check result is an array', function(){
-      assert.isArray(actual, "result is an array");
-      assert.lengthOf(actual, 2, "array is expected length");
-    });
-
+  it('check result is an array', function(){
+    assert.isArray(actual, "result is an array");
+    assert.lengthOf(actual, 2, "array is expected length");
   });
 
 });
 
 describe('test get total value of all loans', function(){
-  var testUserID;
+  var actual;
+  var expected = 0.33;
 
   before(function(done){
-    TraderUtils.createTraderInDB("test_user", testCoinfloorID, testCoinfloorPassword, testCoinfloorAPIKey, mySQLConnection, function(result){
-        testUserID = result;
-        testUtils.createTestLoans(testUserID, mySQLConnection, done);
+    TraderUtils.getTotalValueOfLoansForExchange(testUserID, "coinfloor", mySQLConnection, function(result){
+      actual = result;
+      done();
     });
   });
 
-  describe('test total value of loans for exchange', function(){
-    var actual;
-    var expected = 0.33;
-    before(function(done){
-      TraderUtils.getTotalValueOfLoansForExchange(testUserID, "coinfloor", mySQLConnection, function(result){
+  it('check result is an array', function(){
+    assert.equal(actual, expected, "total result is same as expected value");
+  });
+
+});
+
+describe('test delete all loans', function(){
+  var actual;
+
+  before(function(done){
+    TraderUtils.deleteAllLoans(testUserID, mySQLConnection, function(result){
+    TraderUtils.getAllLoans(testUserID, mySQLConnection, function(result){
         actual = result;
-        testUtils.clearTraderFromDB(testUserID, mySQLConnection, done);
+        done();
       });
     });
+  });
 
-    it('check result is an array', function(){
-      assert.equal(actual, expected, "total result is same as expected value");
-    });
+  it('check result is an array', function(){
+    assert.isArray(actual, "result is an array");
+    assert.lengthOf(actual, 0, "array is expected length");
+  });
 
+});
+
+describe('test delete trader', function(){
+  var actual;
+
+  before(function(done){
+    TraderUtils.deleteTraderFromDB(testUserID, mySQLConnection, function(result){
+        actual = result.affectedRows;
+        done();
+      });
+  });
+
+  it('check it deleted the trader', function(){
+    assert.equal(actual, 1, "deleted one row");
   });
 
 });
