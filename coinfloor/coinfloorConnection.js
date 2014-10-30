@@ -7,10 +7,12 @@ var mySQLWrapper = require('../lib/mySQLWrapper.js');
 var credentials = require('../credentials/mySQLlogin.json');
 
 var mysql_host = "localhost";
-var mysql_database = "bitcoinloans";
+var mysql_database = process.argv[2];
+var mysql_user = process.argv[3];
+var mysql_password = process.argv[4];
 
-if(process.argv[2] !== undefined){
-  var trademoreID = process.argv[2];
+if(process.argv[5] !== undefined){
+  var trademoreID = process.argv[5];
 } else {
   console.log('ERROR: you did not provide a Trademore userID as an argument');
   process.exit(1);
@@ -18,8 +20,8 @@ if(process.argv[2] !== undefined){
 
 //default to test mode so cannot place trades
 var testMode = 1;
-if(process.argv[3] !== undefined){
-  testMode = process.argv[3];
+if(process.argv[6] !== undefined){
+  testMode = process.argv[6];
 }
 
 var mySQLConnection = new mySQLWrapper(mysql_host, credentials.user, credentials.password, mysql_database);
