@@ -56,7 +56,7 @@ function launchStopLoss(mysql_database, mysql_user, mysql_password, traderID, ex
   command += testMode + " ";
   command += ">> ~/Documents/logs/coinfloor" + date.getTime() + ".log";
 
-  console.log("Executing command: " + command);
+  console.log("Executing command to launch stop loss process for user: " + traderID);
 
   var process = childProcess.exec(command, function (error, stdout, stderr) {
      if (error) {
