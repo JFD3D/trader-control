@@ -11,7 +11,7 @@
     "async": "",
     "nodemailer": "1.3.0",
     "prompt": "",
-    "btcchina": "0.0.2",
+    "btcchina": "git+https://github.com/BTCChina/btcchina-api-js.git",
     "socket.io-client": "1.2.0"
   }
 }

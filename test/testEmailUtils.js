@@ -6,6 +6,6 @@ var alertRecipient = 'team@trademoremargin.com';
 
 var email = new emailSender(alertSender, alertPassword, 'zoho');
 
-email.sendAlertMail("test email", "sent from test/testEmailUtils.js");
+email.sendAlertMail("testing alert email function", "sent from test/testEmailUtils.js");
 
-email.sendBalanceNotificationMail('Your account has fallen below the threshold', 'Your current balance is...', "rorygreig@gmail.com");
+// email.sendBalanceNotificationMail('Your account has fallen below the threshold', 'Your current balance is...', "rorygreig@gmail.com");
