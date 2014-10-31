@@ -6,6 +6,9 @@ var TraderUtils = require('../lib/traderDBUtils.js');
 var mySQLWrapper = require('../lib/mySQLWrapper.js');
 var emailSender = require("../lib/emailUtils.js");
 
+var loanAsset = "BTC";
+var counterAsset = "CNY";
+
 var mysql_host = "localhost";
 var mysql_database = process.argv[2];
 var mysql_user = process.argv[3];
@@ -75,6 +78,9 @@ TraderUtils.getBTChinaCredentials(trademoreID, mySQLConnection, function(credent
     console.log('CNY balance = ' + CNYBalance);
     console.log('BTC balance = ' + BTCBalance);
     console.log('ask price = ' + latestAskPrice);
+
+    //send an email to notify the user if their account value has fallen below a certain level
+    checkBalance.isAboveUserNotificationThreshold(BTCBalance, CNYBalance, loanAsset, counterAsset, latestAskPrice, trademoreID, "btcchina", mySQLConnection, function(result){;});
 
     checkBalance.isAboveMaintenanceValue(BTCBalance, CNYBalance, latestAskPrice, trademoreID, "btcchina", mySQLConnection, function(result){
       if(result){
