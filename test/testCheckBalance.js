@@ -37,7 +37,7 @@ describe('test check balance non async functions',function(){
 var testUserID;
 var mySQLConnection = new mySQLWrapper('localhost', 'root', 'root', 'bitcoinloanstest');
 
-describe('test check balance more', function(){
+describe('test check balance', function(){
 
   before(function(done){
     TraderUtils.createTraderInDB("test_user", '1000', 'password', 'apikeytest123', mySQLConnection, function(result){
@@ -58,7 +58,7 @@ describe('test check balance more', function(){
     var actual = false
 
     before(function(done){
-      checkBalance.isAboveMaintenanceValue(XBTBalance, GBPBalance, XBTAskPrice, testUserID, "coinfloor", mySQLConnection, function(result){
+      checkBalance.isAboveMaintenanceValue(XBTBalance, GBPBalance, "BTC", "GBP", XBTAskPrice, testUserID, "coinfloor", mySQLConnection, function(result){
         actual = result;
         done();
       });
@@ -72,7 +72,7 @@ describe('test check balance more', function(){
 
 });
 
-describe('test check balance less', function(){
+describe('test check balance', function(){
 
   describe('lower than minimum value',function(){
     //total loans on coinfloor = 0.33XBT
@@ -85,7 +85,7 @@ describe('test check balance less', function(){
     var actual;
 
     before(function(done){
-      checkBalance.isAboveMaintenanceValue(XBTBalance, GBPBalance, XBTAskPrice, testUserID, "coinfloor", mySQLConnection, function(result){
+      checkBalance.isAboveMaintenanceValue(XBTBalance, GBPBalance, "BTC", "GBP", XBTAskPrice, testUserID, "coinfloor", mySQLConnection, function(result){
         actual = result;
         done();
       });
@@ -112,7 +112,7 @@ describe('test check balance equal', function(){
     var actual = false
 
     before(function(done){
-      checkBalance.isAboveMaintenanceValue(XBTBalance, GBPBalance, XBTAskPrice, testUserID, "coinfloor", mySQLConnection, function(result){
+      checkBalance.isAboveMaintenanceValue(XBTBalance, GBPBalance, "BTC", "GBP", XBTAskPrice, testUserID, "coinfloor", mySQLConnection, function(result){
         actual = result;
         done();
       });
