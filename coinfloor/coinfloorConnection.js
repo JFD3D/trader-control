@@ -8,6 +8,8 @@ var emailSender = require("../lib/emailUtils.js");
 var loanAsset = "XBT";
 var counterAsset = "GBP";
 
+var minGBPOrder = 0.10;
+
 var mysql_host = "localhost";
 var mysql_database = process.argv[2];
 var mysql_user = process.argv[3];
@@ -77,12 +79,17 @@ TraderUtils.getCoinfloorCredentials(trademoreID, mySQLConnection, function(crede
     checkBalance.isAboveUserNotificationThreshold(XBTbalance, GBPbalance, loanAsset, counterAsset, latestAskPrice, trademoreID, "coinfloor", mySQLConnection, function(result){;});
 
     //check if we need to place a stop loss trade
-    checkBalance.isAboveMaintenanceValue(XBTbalance, GBPbalance, latestAskPrice, trademoreID, "coinfloor", mySQLConnection, function(result){
+    checkBalance.isAboveMaintenanceValue(XBTbalance, GBPbalance, loanAsset, counterAsset, latestAskPrice, trademoreID, "coinfloor", mySQLConnection, function(result){
       if(result){
         console.log("Value check passed: value of account is above minimum requirement");
       } else {
         console.log("Value check failed: value of account is below minimum requirement");
-        executeStopLossTrade("XBT", "GBP", GBPbalance);
+        //check if GBP amount is above the minimum required to place an order
+        if(GBPbalance > minGBPOrder){
+          executeStopLossTrade("XBT", "GBP", GBPbalance);
+        } else {
+          console.log("GBP balance too small to place stop loss trade.");
+        }
       }
     });
 
@@ -101,7 +108,6 @@ TraderUtils.getCoinfloorCredentials(trademoreID, mySQLConnection, function(crede
             console.log('STOP LOSS TRADE EXECUTED PARTIALLY: sold ' + totalSold + counterAsset );
             console.log('Remaining to be liquidated: ' + remaining + counterAsset );
             email.sendAlertMail('WARNING: stop loss trade executed partially', 'Stop loss trade executed partially on Coinfloor for trader account id: ' + trademoreID);
-
           } else {
             console.log('STOP LOSS TRADE EXECUTED SUCCESSFULLY: sold ' + counterTotal + counterAsset );
             email.sendAlertMail('ALERT: stop loss trade executed successfully', 'Stop loss trade executed successfully on Coinfloor for trader account id: ' + trademoreID);

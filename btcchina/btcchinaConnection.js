@@ -85,7 +85,7 @@ TraderUtils.getBTChinaCredentials(trademoreID, mySQLConnection, function(credent
     checkBalance.isAboveUserNotificationThreshold(BTCBalance, CNYBalance, loanAsset, counterAsset, latestAskPrice, trademoreID, "btcchina", mySQLConnection, function(result){;});
 
     //check if we need to place a stop loss trade
-    checkBalance.isAboveMaintenanceValue(BTCBalance, CNYBalance, latestAskPrice, trademoreID, "btcchina", mySQLConnection, function(result){
+    checkBalance.isAboveMaintenanceValue(BTCBalance, CNYBalance, loanAsset, counterAsset, latestAskPrice, trademoreID, "btcchina", mySQLConnection, function(result){
       if(result){
         console.log("Value check passed: value of account is above minimum requirement");
       } else {
